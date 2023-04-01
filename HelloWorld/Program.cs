@@ -1,4 +1,5 @@
 ﻿using HelloWorld.Services;
+using HelloWorld.Utils;
 using System;
 
 namespace HelloWorld
@@ -7,6 +8,8 @@ namespace HelloWorld
     {
         static void Main(string[] args)
         {
+
+            ConsoleHelper.PrintGreeting();
 
             BankomatService bs = new BankomatService();
             bs.Init();

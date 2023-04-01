@@ -1,8 +1,10 @@
 ﻿using HelloWorld.Models;
+using HelloWorld.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace HelloWorld.Services
 {
@@ -10,27 +12,17 @@ namespace HelloWorld.Services
     {
         private List<BankAccount> _bankAccounts;
         private const string _filePath = @"C:\Agu\bankomat.txt";
+        private const string _jsonFilePath = @"C:\Agu\bankomat.json";
 
         public void Init()
         {
             Console.WriteLine("ATM Initializing..... ");
             _bankAccounts = new List<BankAccount>();
 
-            string[] inputs = File.ReadAllLines(_filePath);
+            string input = File.ReadAllText(_jsonFilePath);
 
-            foreach(string input in inputs)
-            {
-                string[] items = input.Split(';');
-
-                _bankAccounts.Add(new BankAccount
-                {
-                    Balance = Int32.Parse(items[3]),
-                    Name = items[2],
-                    Pin = items[1],
-                    Number = items[0]
-                });
-            }
-
+            _bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(input);
+            
             Console.WriteLine("ATM ready to use.");
         }
 
@@ -48,7 +40,7 @@ namespace HelloWorld.Services
 
             if (!IfAccountExist(number))
             {
-                PrintError("Account doesn't exist");
+                ConsoleHelper.PrintError("Account doesn't exist");
                 goto Start;
             }
 
@@ -59,7 +51,7 @@ namespace HelloWorld.Services
 
             if (!ba.Pin.Equals(pin))
             {
-                PrintError("Incorrect pin");
+                ConsoleHelper.PrintError("Incorrect pin");
                 goto Start;
             }
 
@@ -92,34 +84,15 @@ namespace HelloWorld.Services
 
         private void UpdateFile()
         {
-            string[] outputs = new string[_bankAccounts.Count];
-            int i = 0;
-            foreach(var bankAccount in _bankAccounts)
-            {
-                outputs[i] = $"{bankAccount.Number};{bankAccount.Pin};{bankAccount.Name};{bankAccount.Balance}";
-                i++;
-            }
-
-            File.WriteAllLines(_filePath, outputs);
+            string output = JsonSerializer.Serialize<List<BankAccount>>(_bankAccounts);
+            File.WriteAllText(_jsonFilePath, output);
         }
 
-        private void PrintError(string text)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(text);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
-
-        private void PrintSuccess(string text)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(text);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
+        
 
         private void PrintBalance(BankAccount ba)
         {
-            PrintSuccess($"Your balance: {ba.Balance}");
+            ConsoleHelper.PrintSuccess($"Your balance: {ba.Balance}");
         }
 
         private void Deposit(BankAccount ba)
@@ -127,7 +100,7 @@ namespace HelloWorld.Services
             Console.WriteLine("Enter amount to deposit: ");
             long amount = Int64.Parse(Console.ReadLine());
             ba.Deposit(amount);
-            PrintSuccess("Thank you. Deposit saved");
+            ConsoleHelper.PrintSuccess("Thank you. Deposit saved");
         }
 
         private void Withdraw(BankAccount ba)
@@ -136,11 +109,11 @@ namespace HelloWorld.Services
             long amount = Int64.Parse(Console.ReadLine());
             if ( amount > ba.Balance)
             {
-                PrintError("Balance too low");
+                ConsoleHelper.PrintError("Balance too low");
                 return;
             }
             ba.Withdraw(amount);
-            PrintSuccess("Thank you. Printing your money");
+            ConsoleHelper.PrintSuccess("Thank you. Printing your money");
         }
     }
 }

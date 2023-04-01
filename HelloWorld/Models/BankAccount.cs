@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HelloWorld.Models
+﻿namespace HelloWorld.Models
 {
     public class BankAccount
     {
